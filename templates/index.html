@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Madara Reality</title>
+
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #b30000;
+            font-size: 45px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .quote {
+            background: #222;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        input {
+            width: 70%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #b30000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>MADARA UCHIHA</h1>
+
+    <h2>Wake Up To Reality</h2>
+
+    <p>Full Stack Docker Application</p>
+
+    <form action="/add" method="POST">
+        <input
+            type="text"
+            name="quote"
+            placeholder="Enter a quote..."
+            required
+        >
+
+        <button type="submit">Save Quote</button>
+    </form>
+
+    <h2>Saved Quotes</h2>
+
+    {% for quote in quotes %}
+        <div class="quote">
+            {{ quote[1] }}
+        </div>
+    {% endfor %}
+
+</div>
+
+</body>
+</html>

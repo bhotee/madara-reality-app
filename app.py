@@ -1,77 +1,79 @@
-from flask import Flask
+from flask import Flask, request, redirect, render_template
+import psycopg2
+import time
 
 app = Flask(__name__)
 
-dialogue = """
-WAKE UP TO REALITY
 
-Nothing ever goes as planned in this accursed world.
+def get_connection():
+    return psycopg2.connect(
+        host="database",
+        database="madara_db",
+        user="madara_user",
+        password="madara_password"
+    )
 
-The longer you live, the more you realize that the only things
-that truly exist in this reality are pain, suffering and futility.
 
-Wherever there is light, there are also shadows.
+def init_database():
+    while True:
+        try:
+            connection = get_connection()
+            cursor = connection.cursor()
 
-As long as there are winners, there must also be losers.
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS quotes (
+                    id SERIAL PRIMARY KEY,
+                    quote TEXT NOT NULL
+                )
+            """)
 
-Peace and conflict are connected in this world.
-"""
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+            print("Database connected successfully!")
+            break
+
+        except Exception as error:
+            print("Waiting for database...")
+            print(error)
+            time.sleep(2)
+
 
 @app.route("/")
 def home():
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Madara Uchiha</title>
+    connection = get_connection()
+    cursor = connection.cursor()
 
-        <style>
-            body {{
-                background: #111;
-                color: white;
-                font-family: Arial, sans-serif;
-                text-align: center;
-                padding: 50px;
-            }}
+    cursor.execute("SELECT id, quote FROM quotes ORDER BY id DESC")
+    quotes = cursor.fetchall()
 
-            h1 {{
-                color: #b30000;
-                font-size: 50px;
-                margin-bottom: 10px;
-            }}
+    cursor.close()
+    connection.close()
 
-            h2 {{
-                font-style: italic;
-                color: #ccc;
-            }}
+    return render_template("index.html", quotes=quotes)
 
-            .dialogue {{
-                max-width: 800px;
-                margin: 40px auto;
-                padding: 30px;
-                background: #222;
-                border-radius: 10px;
-                font-size: 20px;
-                line-height: 1.8;
-                white-space: pre-line;
-                text-align: left;
-            }}
-        </style>
-    </head>
 
-    <body>
+@app.route("/add", methods=["POST"])
+def add_quote():
+    quote = request.form["quote"]
 
-        <h1>MADARA UCHIHA</h1>
+    connection = get_connection()
+    cursor = connection.cursor()
 
-        <h2>"Wake up to reality..."</h2>
+    cursor.execute(
+        "INSERT INTO quotes (quote) VALUES (%s)",
+        (quote,)
+    )
 
-        <div class="dialogue">
-            {dialogue}
-        </div>
+    connection.commit()
 
-    </body>
-    </html>
-    """
+    cursor.close()
+    connection.close()
+
+    return redirect("/")
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    init_database()
+    app.run(host="0.0.0.0", port=8080, debug=True)
